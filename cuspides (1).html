@@ -1,0 +1,1590 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cúspides — Transformación en las Alturas</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    @font-face {
+      font-family: 'Mainrope';
+      src: url('https://db.onlinewebfonts.com/t/mainrope-regular.woff2') format('woff2'),
+           url('https://db.onlinewebfonts.com/t/mainrope-regular.woff') format('woff');
+      font-weight: 300 400;
+      font-style: normal;
+      font-display: swap;
+    }
+  </style>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --violet-deep:    #3B0764;
+      --violet-core:    #6B21A8;
+      --violet-mid:     #9333EA;
+      --violet-glow:    #A855F7;
+      --stone-black:    #0C0A09;
+      --stone-dark:     #1C1917;
+      --stone-mid:      #44403C;
+      --stone-pale:     #A8A29E;
+      --ice-white:      #F0EFEB;
+      --amber-summit:   #D97706;
+      --amber-light:    #FCD34D;
+      --steel-ice:      #94A3B8;
+      --ff-display:     'Oswald', sans-serif;
+      --ff-body:        'Mainrope', 'Georgia', serif;
+      --ff-mono:        'Space Mono', monospace;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--stone-black);
+      color: var(--ice-white);
+      font-family: var(--ff-body);
+      font-weight: 400;
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    /* ─── SCROLLBAR ─── */
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: var(--stone-black); }
+    ::-webkit-scrollbar-thumb { background: var(--violet-core); border-radius: 2px; }
+
+    /* ─── NAV ─── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1.25rem 4rem;
+      background: transparent;
+      transition: background 0.4s, backdrop-filter 0.4s;
+    }
+    nav.scrolled {
+      background: rgba(12,10,9,0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(107,33,168,0.3);
+    }
+    .nav-logo {
+      font-family: var(--ff-display);
+      font-size: 1.6rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      color: var(--ice-white);
+      text-decoration: none;
+    }
+    .nav-logo span { color: var(--violet-glow); }
+    .nav-links { display: flex; gap: 2rem; list-style: none; }
+    .nav-links a {
+      color: var(--stone-pale);
+      text-decoration: none;
+      font-size: 0.78rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover { color: var(--violet-glow); }
+    .nav-cta {
+      padding: 0.55rem 1.4rem;
+      border: 1px solid var(--violet-core);
+      color: var(--violet-glow);
+      text-decoration: none;
+      font-size: 0.75rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      transition: all 0.25s;
+    }
+    .nav-cta:hover {
+      background: var(--violet-core);
+      color: var(--ice-white);
+    }
+    .hamburger {
+      display: none; flex-direction: column; gap: 5px;
+      cursor: pointer; border: none; background: none; padding: 4px;
+    }
+    .hamburger span {
+      display: block; width: 24px; height: 2px;
+      background: var(--ice-white);
+      transition: all 0.3s;
+    }
+    .mobile-menu {
+      display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(12,10,9,0.97); z-index: 99;
+      flex-direction: column; align-items: center; justify-content: center; gap: 2rem;
+    }
+    .mobile-menu.open { display: flex; }
+    .mobile-menu a {
+      color: var(--ice-white); text-decoration: none;
+      font-family: var(--ff-display); font-size: 2.5rem; letter-spacing: 0.1em;
+      transition: color 0.2s;
+    }
+    .mobile-menu a:hover { color: var(--violet-glow); }
+    .mobile-close {
+      position: absolute; top: 1.5rem; right: 2rem;
+      background: none; border: none; color: var(--stone-pale);
+      font-size: 1.8rem; cursor: pointer;
+    }
+
+    /* ─── HERO ─── */
+    #hero {
+      position: relative; min-height: 100vh;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      overflow: hidden; background: var(--stone-black);
+    }
+    .hero-bg {
+      position: absolute; inset: 0;
+      background: radial-gradient(ellipse at 60% 40%, rgba(107,33,168,0.18) 0%, transparent 65%),
+                  radial-gradient(ellipse at 20% 80%, rgba(59,7,100,0.25) 0%, transparent 60%);
+    }
+    .mountain-svg-wrap {
+      position: absolute; bottom: 0; left: 0; right: 0;
+      height: 55%;
+    }
+    #mountain-path {
+      stroke-dasharray: 2000;
+      stroke-dashoffset: 2000;
+      animation: drawMountain 3s ease forwards 0.5s;
+    }
+    @keyframes drawMountain {
+      to { stroke-dashoffset: 0; }
+    }
+    .mountain-fill { opacity: 0; animation: fillMountain 1s ease forwards 3.2s; }
+    @keyframes fillMountain { to { opacity: 1; } }
+
+    .hero-content {
+      position: relative; z-index: 2; text-align: center;
+      padding: 0 2rem; max-width: 900px;
+    }
+    .hero-eyebrow {
+      font-family: var(--ff-mono);
+      font-size: 0.72rem; letter-spacing: 0.3em;
+      color: var(--violet-glow);
+      text-transform: uppercase;
+      opacity: 0; animation: fadeUp 0.8s ease forwards 0.8s;
+    }
+    .hero-title {
+      font-family: var(--ff-display);
+      font-size: clamp(4.5rem, 13vw, 12rem);
+      font-weight: 700;
+      line-height: 0.92; letter-spacing: 0.03em;
+      color: var(--ice-white);
+      opacity: 0; animation: fadeUp 0.9s ease forwards 1.1s;
+    }
+    .hero-title .accent { color: var(--violet-glow); }
+    .hero-sub {
+      margin-top: 1.5rem;
+      font-size: clamp(1rem, 2vw, 1.2rem);
+      color: var(--stone-pale); font-weight: 300;
+      max-width: 520px; margin-left: auto; margin-right: auto;
+      opacity: 0; animation: fadeUp 0.9s ease forwards 1.4s;
+    }
+    .hero-filter-line {
+      margin-top: 2.5rem;
+      font-family: var(--ff-mono); font-size: 0.7rem;
+      letter-spacing: 0.2em; color: var(--amber-summit);
+      text-transform: uppercase;
+      opacity: 0; animation: fadeUp 0.9s ease forwards 1.7s;
+    }
+    .hero-cta-row {
+      margin-top: 2.5rem; display: flex; gap: 1rem;
+      justify-content: center; flex-wrap: wrap;
+      opacity: 0; animation: fadeUp 0.9s ease forwards 2s;
+    }
+    .btn-primary {
+      padding: 0.9rem 2.5rem;
+      background: var(--violet-core);
+      color: var(--ice-white); font-family: var(--ff-mono);
+      font-size: 0.75rem; letter-spacing: 0.15em; text-transform: uppercase;
+      text-decoration: none; border: none; cursor: pointer;
+      position: relative; overflow: hidden;
+      transition: background 0.3s;
+    }
+    .btn-primary::after {
+      content: ''; position: absolute; inset: 0;
+      background: var(--violet-glow); transform: translateX(-100%);
+      transition: transform 0.4s ease;
+    }
+    .btn-primary:hover { background: var(--violet-deep); }
+    .btn-primary:hover::after { transform: translateX(0); opacity: 0.25; }
+    .btn-ghost {
+      padding: 0.9rem 2.5rem;
+      border: 1px solid var(--stone-pale);
+      color: var(--stone-pale); font-family: var(--ff-mono);
+      font-size: 0.75rem; letter-spacing: 0.15em; text-transform: uppercase;
+      text-decoration: none; cursor: pointer; background: none;
+      transition: all 0.3s;
+    }
+    .btn-ghost:hover { border-color: var(--ice-white); color: var(--ice-white); }
+
+    .scroll-hint {
+      position: absolute; bottom: 2rem; left: 50%; transform: translateX(-50%);
+      display: flex; flex-direction: column; align-items: center; gap: 0.5rem;
+      opacity: 0; animation: fadeUp 1s ease forwards 2.5s;
+    }
+    .scroll-hint span { font-family: var(--ff-mono); font-size: 0.6rem; letter-spacing: 0.2em; color: var(--stone-pale); }
+    .scroll-line {
+      width: 1px; height: 50px; background: var(--stone-pale);
+      animation: scrollPulse 2s ease infinite;
+    }
+    @keyframes scrollPulse {
+      0%, 100% { opacity: 0.3; transform: scaleY(1); }
+      50% { opacity: 1; transform: scaleY(1.2); }
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ─── SECTION BASE ─── */
+    section { padding: 7rem 4rem; }
+    .section-eyebrow {
+      font-family: var(--ff-mono); font-size: 0.68rem;
+      letter-spacing: 0.28em; color: var(--violet-glow);
+      text-transform: uppercase; margin-bottom: 1.2rem;
+    }
+    .section-title {
+      font-family: var(--ff-display);
+      font-size: clamp(2.8rem, 6vw, 5.5rem);
+      font-weight: 700;
+      line-height: 1; color: var(--ice-white);
+      margin-bottom: 2rem;
+    }
+    .section-title .accent { color: var(--violet-glow); }
+    .section-body {
+      color: var(--stone-pale); font-weight: 300;
+      font-size: 1.05rem; max-width: 600px; line-height: 1.8;
+    }
+    .reveal {
+      opacity: 0; transform: translateY(40px);
+      transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+
+    /* ─── SECTION 2: MANIFESTO ─── */
+    #manifesto {
+      background: var(--stone-black);
+      display: flex; align-items: center; justify-content: center;
+      min-height: 60vh; text-align: center;
+      border-top: 1px solid rgba(107,33,168,0.2);
+    }
+    .manifesto-inner { max-width: 860px; }
+    .manifesto-quote {
+      font-family: var(--ff-display);
+      font-size: clamp(2rem, 5vw, 4rem);
+      font-weight: 700;
+      line-height: 1.1;
+      color: var(--ice-white);
+      margin-bottom: 2rem;
+    }
+    .manifesto-quote em {
+      font-style: normal; color: var(--violet-glow);
+    }
+    .manifesto-note {
+      font-family: var(--ff-mono); font-size: 0.72rem;
+      letter-spacing: 0.2em; color: var(--amber-summit);
+      text-transform: uppercase;
+    }
+
+    /* ─── SECTION 3: PROCESO ─── */
+    #proceso {
+      background: linear-gradient(180deg, var(--stone-black) 0%, #0f0a14 100%);
+    }
+    .proceso-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 3rem 5rem;
+      margin-top: 4rem;
+      max-width: 1000px;
+    }
+    .proceso-item { position: relative; }
+    .proceso-num {
+      font-family: var(--ff-display);
+      font-size: 5rem; line-height: 1;
+      color: rgba(107,33,168,0.15);
+      position: absolute; top: -1rem; left: -0.5rem;
+    }
+    .proceso-content { position: relative; padding-left: 1rem; }
+    .proceso-label {
+      font-family: var(--ff-mono); font-size: 0.68rem;
+      letter-spacing: 0.2em; color: var(--violet-glow);
+      text-transform: uppercase; margin-bottom: 0.5rem;
+    }
+    .proceso-heading {
+      font-family: var(--ff-display); font-size: 1.8rem;
+      color: var(--ice-white); margin-bottom: 0.8rem;
+    }
+    .proceso-text { color: var(--stone-pale); font-size: 0.9rem; line-height: 1.7; }
+    .proceso-bar {
+      margin-top: 1rem; height: 2px;
+      background: rgba(107,33,168,0.2);
+      position: relative; overflow: hidden;
+    }
+    .proceso-bar-fill {
+      position: absolute; left: 0; top: 0; height: 100%;
+      background: var(--violet-core);
+      width: 0; transition: width 1.2s ease;
+    }
+    .reveal.visible .proceso-bar-fill { width: var(--fill); }
+
+    /* ─── SECTION 4: EXPEDICIONES ─── */
+    #expediciones {
+      background: #0f0a14;
+      overflow: hidden;
+    }
+    .exp-intro { max-width: 700px; }
+    .exp-cards {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5px;
+      margin-top: 4rem;
+    }
+    .exp-card {
+      position: relative; height: 520px; overflow: hidden;
+      cursor: pointer;
+    }
+    .exp-card-bg {
+      position: absolute; inset: 0;
+      background-size: cover; background-position: center;
+      transition: transform 0.6s ease;
+    }
+    .exp-card:hover .exp-card-bg { transform: scale(1.06); }
+    .exp-card-overlay {
+      position: absolute; inset: 0;
+      background: linear-gradient(to top, rgba(12,10,9,0.92) 0%, rgba(59,7,100,0.3) 50%, transparent 100%);
+      transition: background 0.4s;
+    }
+    .exp-card:hover .exp-card-overlay {
+      background: linear-gradient(to top, rgba(59,7,100,0.9) 0%, rgba(107,33,168,0.3) 50%, transparent 100%);
+    }
+    .exp-card-content {
+      position: absolute; bottom: 0; left: 0; right: 0;
+      padding: 2rem;
+    }
+    .exp-difficulty {
+      display: inline-block; padding: 0.25rem 0.6rem;
+      font-family: var(--ff-mono); font-size: 0.6rem;
+      letter-spacing: 0.2em; text-transform: uppercase;
+      margin-bottom: 0.8rem;
+    }
+    .difficulty-extreme { background: #7F1D1D; color: #FCA5A5; }
+    .difficulty-high    { background: #78350F; color: #FCD34D; }
+    .difficulty-elite   { background: var(--violet-deep); color: var(--violet-glow); }
+    .exp-card-title {
+      font-family: var(--ff-display); font-size: 2rem;
+      color: var(--ice-white); margin-bottom: 0.5rem;
+    }
+    .exp-card-alt {
+      font-family: var(--ff-mono); font-size: 0.7rem;
+      color: var(--amber-summit); letter-spacing: 0.15em;
+    }
+    .exp-card-desc {
+      color: var(--stone-pale); font-size: 0.82rem;
+      margin-top: 0.8rem; line-height: 1.6;
+      max-height: 0; overflow: hidden;
+      transition: max-height 0.4s ease, opacity 0.4s;
+      opacity: 0;
+    }
+    .exp-card:hover .exp-card-desc { max-height: 120px; opacity: 1; }
+
+    /* ─── SECTION 5: PREPARACIÓN ─── */
+    #preparacion {
+      background: var(--stone-black);
+      border-top: 1px solid rgba(107,33,168,0.2);
+    }
+    .prep-layout {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 6rem; align-items: center; margin-top: 3rem;
+    }
+    .prep-timeline { position: relative; padding-left: 2rem; }
+    .prep-timeline::before {
+      content: ''; position: absolute; left: 0; top: 0; bottom: 0;
+      width: 1px; background: linear-gradient(to bottom, var(--violet-core), transparent);
+    }
+    .prep-step {
+      position: relative; margin-bottom: 2.5rem;
+      opacity: 0; transform: translateX(-20px);
+      transition: all 0.5s ease;
+    }
+    .prep-step.visible { opacity: 1; transform: translateX(0); }
+    .prep-step::before {
+      content: ''; position: absolute; left: -2.4rem; top: 0.35rem;
+      width: 9px; height: 9px; border-radius: 50%;
+      background: var(--violet-core);
+      box-shadow: 0 0 12px var(--violet-glow);
+    }
+    .prep-step-month {
+      font-family: var(--ff-mono); font-size: 0.62rem;
+      letter-spacing: 0.2em; color: var(--violet-glow);
+      text-transform: uppercase; margin-bottom: 0.3rem;
+    }
+    .prep-step-title {
+      font-family: var(--ff-display); font-size: 1.3rem;
+      color: var(--ice-white); margin-bottom: 0.3rem;
+    }
+    .prep-step-text { color: var(--stone-pale); font-size: 0.85rem; line-height: 1.6; }
+    .prep-visual {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;
+    }
+    .prep-stat {
+      padding: 1.8rem; border: 1px solid rgba(107,33,168,0.25);
+      background: rgba(59,7,100,0.1);
+      transition: border-color 0.3s, background 0.3s;
+    }
+    .prep-stat:hover {
+      border-color: var(--violet-core);
+      background: rgba(59,7,100,0.25);
+    }
+    .prep-stat-num {
+      font-family: var(--ff-display); font-size: 2.8rem;
+      color: var(--violet-glow); line-height: 1;
+    }
+    .prep-stat-label { color: var(--stone-pale); font-size: 0.78rem; margin-top: 0.4rem; }
+
+    /* ─── SECTION 6: SEGURIDAD ─── */
+    #seguridad {
+      background: linear-gradient(135deg, #0a0612 0%, var(--stone-black) 100%);
+      border-top: 1px solid rgba(107,33,168,0.2);
+    }
+    .seg-grid {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 4rem; margin-top: 4rem; align-items: start;
+    }
+    .seg-protocols { }
+    .seg-protocol {
+      display: flex; gap: 1.2rem; align-items: flex-start;
+      margin-bottom: 2rem; padding-bottom: 2rem;
+      border-bottom: 1px solid rgba(107,33,168,0.15);
+    }
+    .seg-protocol:last-child { border-bottom: none; }
+    .seg-icon {
+      width: 48px; height: 48px; flex-shrink: 0;
+      border: 1px solid var(--violet-core);
+      display: flex; align-items: center; justify-content: center;
+      color: var(--violet-glow); font-size: 1.2rem;
+      transition: background 0.3s;
+    }
+    .seg-protocol:hover .seg-icon { background: rgba(107,33,168,0.3); }
+    .seg-proto-title {
+      font-family: var(--ff-display); font-size: 1.3rem;
+      color: var(--ice-white); margin-bottom: 0.3rem;
+    }
+    .seg-proto-text { color: var(--stone-pale); font-size: 0.85rem; line-height: 1.6; }
+    .seg-cert {
+      padding: 2.5rem; border: 1px solid rgba(107,33,168,0.3);
+      background: rgba(59,7,100,0.1);
+    }
+    .seg-cert-title {
+      font-family: var(--ff-display); font-size: 2.2rem;
+      color: var(--ice-white); margin-bottom: 1rem;
+    }
+    .seg-cert-list { list-style: none; }
+    .seg-cert-list li {
+      display: flex; align-items: center; gap: 0.8rem;
+      padding: 0.7rem 0; border-bottom: 1px solid rgba(107,33,168,0.1);
+      font-family: var(--ff-mono); font-size: 0.72rem;
+      letter-spacing: 0.1em; color: var(--stone-pale);
+    }
+    .seg-cert-list li::before {
+      content: '—'; color: var(--violet-glow);
+    }
+
+    /* ─── SECTION 7: GUÍAS ─── */
+    #guias {
+      background: var(--stone-black);
+      border-top: 1px solid rgba(107,33,168,0.2);
+    }
+    .guias-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 2rem; margin-top: 4rem;
+    }
+    .guia-card {
+      border: 1px solid rgba(107,33,168,0.2);
+      padding: 2.5rem 2rem;
+      transition: border-color 0.3s, transform 0.3s;
+      position: relative; overflow: hidden;
+    }
+    .guia-card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0;
+      height: 3px; background: linear-gradient(to right, var(--violet-core), var(--violet-glow));
+      transform: scaleX(0); transition: transform 0.4s ease;
+    }
+    .guia-card:hover { border-color: var(--violet-core); transform: translateY(-4px); }
+    .guia-card:hover::before { transform: scaleX(1); }
+    .guia-avatar {
+      width: 64px; height: 64px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--violet-deep), var(--violet-core));
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--ff-display); font-size: 1.5rem;
+      color: var(--ice-white); margin-bottom: 1.2rem;
+    }
+    .guia-name {
+      font-family: var(--ff-display); font-size: 1.5rem;
+      color: var(--ice-white); margin-bottom: 0.2rem;
+    }
+    .guia-role {
+      font-family: var(--ff-mono); font-size: 0.65rem;
+      letter-spacing: 0.15em; color: var(--violet-glow);
+      text-transform: uppercase; margin-bottom: 1rem;
+    }
+    .guia-bio { color: var(--stone-pale); font-size: 0.85rem; line-height: 1.6; margin-bottom: 1.2rem; }
+    .guia-tags { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+    .guia-tag {
+      padding: 0.2rem 0.6rem; border: 1px solid rgba(107,33,168,0.4);
+      font-family: var(--ff-mono); font-size: 0.6rem;
+      letter-spacing: 0.1em; color: var(--stone-pale); text-transform: uppercase;
+    }
+
+    /* ─── SECTION 8: TESTIMONIOS ─── */
+    #testimonios {
+      background: linear-gradient(180deg, #0a0612 0%, var(--stone-black) 100%);
+      border-top: 1px solid rgba(107,33,168,0.2);
+    }
+    .testi-track-wrap { overflow: hidden; margin-top: 4rem; position: relative; }
+    .testi-track-wrap::before,
+    .testi-track-wrap::after {
+      content: ''; position: absolute; top: 0; bottom: 0; width: 80px; z-index: 2;
+    }
+    .testi-track-wrap::before { left: 0; background: linear-gradient(to right, #0a0612, transparent); }
+    .testi-track-wrap::after  { right: 0; background: linear-gradient(to left, #0a0612, transparent); }
+    .testi-track {
+      display: flex; gap: 1.5rem;
+      animation: scrollTrack 30s linear infinite;
+      width: max-content;
+    }
+    .testi-track:hover { animation-play-state: paused; }
+    @keyframes scrollTrack {
+      from { transform: translateX(0); }
+      to   { transform: translateX(-50%); }
+    }
+    .testi-card {
+      width: 380px; flex-shrink: 0;
+      padding: 2rem; border: 1px solid rgba(107,33,168,0.25);
+      background: rgba(59,7,100,0.08);
+    }
+    .testi-stars { color: var(--amber-summit); font-size: 0.85rem; margin-bottom: 1rem; }
+    .testi-text {
+      color: var(--ice-white); font-size: 0.95rem;
+      line-height: 1.7; margin-bottom: 1.5rem; font-weight: 300;
+    }
+    .testi-author {
+      font-family: var(--ff-mono); font-size: 0.65rem;
+      letter-spacing: 0.15em; color: var(--violet-glow);
+      text-transform: uppercase;
+    }
+    .testi-meta { color: var(--stone-pale); font-size: 0.75rem; margin-top: 0.2rem; }
+
+    /* ─── SECTION 9: TRANSFORMACIÓN ─── */
+    #transformacion {
+      background: var(--stone-black);
+      border-top: 1px solid rgba(107,33,168,0.2);
+      text-align: center; padding: 7rem 4rem;
+    }
+    .transf-inner { max-width: 800px; margin: 0 auto; }
+    .transf-pulse {
+      width: 160px; height: 160px; border-radius: 50%;
+      background: radial-gradient(circle, var(--violet-core), var(--violet-deep));
+      margin: 0 auto 3rem;
+      position: relative;
+      animation: pulsate 3s ease infinite;
+    }
+    .transf-pulse::before, .transf-pulse::after {
+      content: ''; position: absolute; inset: -15px; border-radius: 50%;
+      border: 1px solid rgba(107,33,168,0.4);
+      animation: pulseRing 3s ease infinite;
+    }
+    .transf-pulse::after { inset: -30px; animation-delay: 0.5s; }
+    @keyframes pulsate {
+      0%, 100% { box-shadow: 0 0 30px rgba(168,85,247,0.3); }
+      50% { box-shadow: 0 0 60px rgba(168,85,247,0.6), 0 0 120px rgba(107,33,168,0.2); }
+    }
+    @keyframes pulseRing {
+      0% { transform: scale(1); opacity: 0.6; }
+      100% { transform: scale(1.5); opacity: 0; }
+    }
+    .transf-inner-symbol {
+      position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+      font-size: 3rem;
+    }
+    .transf-title {
+      font-family: var(--ff-display);
+      font-size: clamp(2.5rem, 5vw, 4.5rem);
+      color: var(--ice-white); margin-bottom: 1.5rem;
+    }
+    .transf-body { color: var(--stone-pale); max-width: 580px; margin: 0 auto 2.5rem; line-height: 1.8; }
+    .transf-steps {
+      display: flex; justify-content: center; gap: 0; margin-top: 3rem;
+      flex-wrap: wrap;
+    }
+    .transf-step {
+      padding: 2rem 2.5rem; border: 1px solid rgba(107,33,168,0.2);
+      position: relative; flex: 1; min-width: 180px;
+      transition: background 0.3s;
+    }
+    .transf-step:hover { background: rgba(59,7,100,0.3); }
+    .transf-step-icon { font-size: 1.8rem; margin-bottom: 0.8rem; }
+    .transf-step-title {
+      font-family: var(--ff-display); font-size: 1.1rem;
+      color: var(--ice-white); margin-bottom: 0.4rem;
+    }
+    .transf-step-text { color: var(--stone-pale); font-size: 0.8rem; }
+
+    /* ─── SECTION 10: ESCUELA ─── */
+    #escuela {
+      background: linear-gradient(135deg, #0a0612 0%, #0f0a14 100%);
+      border-top: 1px solid rgba(107,33,168,0.2);
+      position: relative; overflow: hidden;
+    }
+    .escuela-badge {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      padding: 0.4rem 1rem; border: 1px solid var(--amber-summit);
+      font-family: var(--ff-mono); font-size: 0.65rem;
+      letter-spacing: 0.2em; color: var(--amber-summit);
+      text-transform: uppercase; margin-bottom: 2rem;
+    }
+    .escuela-badge::before { content: '●'; animation: blink 2s infinite; }
+    @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+    .escuela-layout {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 5rem; align-items: center;
+    }
+    .escuela-programs { margin-top: 2.5rem; }
+    .escuela-program {
+      display: flex; gap: 1.2rem;
+      padding: 1.5rem 0; border-bottom: 1px solid rgba(107,33,168,0.15);
+      transition: padding-left 0.3s;
+      cursor: default;
+    }
+    .escuela-program:hover { padding-left: 0.5rem; }
+    .escuela-prog-year {
+      font-family: var(--ff-mono); font-size: 0.6rem;
+      letter-spacing: 0.15em; color: var(--amber-summit);
+      text-transform: uppercase; min-width: 60px; padding-top: 0.2rem;
+    }
+    .escuela-prog-name {
+      font-family: var(--ff-display); font-size: 1.2rem;
+      color: var(--ice-white); margin-bottom: 0.3rem;
+    }
+    .escuela-prog-desc { color: var(--stone-pale); font-size: 0.8rem; line-height: 1.5; }
+    .escuela-visual {
+      border: 1px solid rgba(107,33,168,0.3);
+      padding: 3rem; text-align: center;
+      background: rgba(59,7,100,0.1);
+      position: relative;
+    }
+    .escuela-visual-title {
+      font-family: var(--ff-display); font-size: 3rem;
+      color: var(--ice-white); margin-bottom: 0.5rem;
+    }
+    .escuela-visual-sub {
+      font-family: var(--ff-mono); font-size: 0.65rem;
+      letter-spacing: 0.2em; color: var(--violet-glow);
+      text-transform: uppercase; margin-bottom: 2rem;
+    }
+    .escuela-circle-anim {
+      width: 140px; height: 140px; border-radius: 50%;
+      border: 2px solid rgba(107,33,168,0.4);
+      margin: 0 auto; position: relative;
+      animation: rotateRing 8s linear infinite;
+    }
+    .escuela-circle-anim::before {
+      content: ''; position: absolute; inset: 10px; border-radius: 50%;
+      border: 1px dashed rgba(168,85,247,0.4);
+      animation: rotateRing 5s linear infinite reverse;
+    }
+    .escuela-circle-anim::after {
+      content: '★'; position: absolute; top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 2.5rem; color: var(--amber-summit);
+    }
+    @keyframes rotateRing { to { transform: rotate(360deg); } }
+    .escuela-launch-date {
+      margin-top: 2rem; font-family: var(--ff-mono);
+      font-size: 0.7rem; letter-spacing: 0.15em;
+      color: var(--stone-pale);
+    }
+
+    /* ─── SECTION 11: CONTACTO ─── */
+    #contacto {
+      background: var(--stone-black);
+      border-top: 1px solid rgba(107,33,168,0.2);
+    }
+    .contacto-layout {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 6rem; margin-top: 3rem;
+    }
+    .contacto-form { }
+    .form-group { margin-bottom: 1.5rem; }
+    .form-label {
+      display: block; font-family: var(--ff-mono);
+      font-size: 0.65rem; letter-spacing: 0.2em;
+      color: var(--stone-pale); text-transform: uppercase;
+      margin-bottom: 0.5rem;
+    }
+    .form-input, .form-select, .form-textarea {
+      width: 100%; padding: 0.85rem 1rem;
+      background: rgba(28,25,23,0.8);
+      border: 1px solid rgba(107,33,168,0.25);
+      color: var(--ice-white); font-family: var(--ff-body);
+      font-size: 0.9rem; outline: none;
+      transition: border-color 0.3s, background 0.3s;
+      appearance: none;
+    }
+    .form-input:focus, .form-select:focus, .form-textarea:focus {
+      border-color: var(--violet-core);
+      background: rgba(59,7,100,0.15);
+    }
+    .form-textarea { resize: vertical; min-height: 120px; }
+    .form-select option { background: #1C1917; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    .form-submit {
+      width: 100%; padding: 1.1rem;
+      background: var(--violet-core); color: var(--ice-white);
+      border: none; cursor: pointer;
+      font-family: var(--ff-mono); font-size: 0.78rem;
+      letter-spacing: 0.2em; text-transform: uppercase;
+      transition: background 0.3s;
+      position: relative; overflow: hidden;
+    }
+    .form-submit:hover { background: var(--violet-deep); }
+    .form-note {
+      margin-top: 1rem; font-family: var(--ff-mono);
+      font-size: 0.6rem; letter-spacing: 0.15em;
+      color: var(--stone-pale); text-align: center;
+      text-transform: uppercase;
+    }
+    .contacto-info { }
+    .contact-block { margin-bottom: 2.5rem; }
+    .contact-block-label {
+      font-family: var(--ff-mono); font-size: 0.62rem;
+      letter-spacing: 0.25em; color: var(--violet-glow);
+      text-transform: uppercase; margin-bottom: 0.5rem;
+    }
+    .contact-block-value {
+      font-family: var(--ff-display); font-size: 1.4rem;
+      color: var(--ice-white);
+    }
+    .contact-promise {
+      padding: 2rem; border: 1px solid rgba(107,33,168,0.3);
+      background: rgba(59,7,100,0.1); margin-top: 2rem;
+    }
+    .contact-promise-title {
+      font-family: var(--ff-display); font-size: 1.3rem;
+      color: var(--ice-white); margin-bottom: 0.8rem;
+    }
+    .contact-promise-text {
+      color: var(--stone-pale); font-size: 0.85rem; line-height: 1.7;
+    }
+
+    /* ─── SECTION 12: FOOTER ─── */
+    #footer {
+      background: #080508;
+      border-top: 1px solid rgba(107,33,168,0.3);
+      padding: 5rem 4rem 3rem;
+    }
+    .footer-top {
+      display: grid; grid-template-columns: 2fr 1fr 1fr 1fr;
+      gap: 3rem; margin-bottom: 4rem;
+    }
+    .footer-brand-name {
+      font-family: var(--ff-display); font-size: 2.5rem;
+      font-weight: 700;
+      letter-spacing: 0.06em; color: var(--ice-white);
+      margin-bottom: 1rem;
+    }
+    .footer-brand-name span { color: var(--violet-glow); }
+    .footer-tagline {
+      color: var(--stone-pale); font-size: 0.85rem;
+      line-height: 1.7; max-width: 280px; margin-bottom: 1.5rem;
+    }
+    .footer-social { display: flex; gap: 0.8rem; }
+    .footer-social a {
+      width: 36px; height: 36px; border: 1px solid rgba(107,33,168,0.3);
+      display: flex; align-items: center; justify-content: center;
+      color: var(--stone-pale); text-decoration: none;
+      font-size: 0.75rem; transition: all 0.3s;
+    }
+    .footer-social a:hover { border-color: var(--violet-glow); color: var(--violet-glow); }
+    .footer-col-title {
+      font-family: var(--ff-mono); font-size: 0.62rem;
+      letter-spacing: 0.2em; color: var(--violet-glow);
+      text-transform: uppercase; margin-bottom: 1.2rem;
+    }
+    .footer-col ul { list-style: none; }
+    .footer-col li { margin-bottom: 0.6rem; }
+    .footer-col a {
+      color: var(--stone-pale); text-decoration: none;
+      font-size: 0.85rem; transition: color 0.2s;
+    }
+    .footer-col a:hover { color: var(--ice-white); }
+    .footer-bottom {
+      display: flex; justify-content: space-between; align-items: center;
+      padding-top: 2rem; border-top: 1px solid rgba(107,33,168,0.2);
+      flex-wrap: wrap; gap: 1rem;
+    }
+    .footer-copy {
+      font-family: var(--ff-mono); font-size: 0.62rem;
+      letter-spacing: 0.1em; color: var(--stone-pale);
+    }
+    .footer-altitude {
+      font-family: var(--ff-mono); font-size: 0.62rem;
+      letter-spacing: 0.2em; color: var(--violet-glow);
+      text-transform: uppercase;
+    }
+
+    /* ─── COUNTER ANIMATION ─── */
+    .count-anim { display: inline-block; }
+
+    /* ─── PARALLAX DIVIDER ─── */
+    .parallax-divider {
+      height: 120px; position: relative; overflow: hidden;
+      background: var(--stone-black);
+    }
+    .parallax-line {
+      position: absolute; left: 0; right: 0; top: 50%;
+      height: 1px;
+      background: linear-gradient(to right, transparent, var(--violet-core), var(--violet-glow), var(--violet-core), transparent);
+      animation: scanLine 4s ease infinite;
+    }
+    @keyframes scanLine {
+      0% { opacity: 0; transform: translateY(-50%) scaleX(0.3); }
+      50% { opacity: 1; transform: translateY(-50%) scaleX(1); }
+      100% { opacity: 0; transform: translateY(-50%) scaleX(0.3); }
+    }
+
+    /* ─── TOAST ─── */
+    .toast {
+      position: fixed; bottom: 2rem; right: 2rem; z-index: 999;
+      padding: 1rem 1.5rem;
+      background: var(--violet-core); color: var(--ice-white);
+      font-family: var(--ff-mono); font-size: 0.72rem;
+      letter-spacing: 0.1em;
+      transform: translateY(80px); opacity: 0;
+      transition: all 0.4s ease;
+    }
+    .toast.show { transform: translateY(0); opacity: 1; }
+
+    /* ─── RESPONSIVE ─── */
+    @media (max-width: 1024px) {
+      .exp-cards { grid-template-columns: 1fr 1fr; }
+      .footer-top { grid-template-columns: 1fr 1fr; }
+      .guias-grid { grid-template-columns: 1fr 1fr; }
+    }
+
+    @media (max-width: 768px) {
+      nav { padding: 1rem 1.5rem; }
+      .nav-links, .nav-cta { display: none; }
+      .hamburger { display: flex; }
+      section { padding: 5rem 1.5rem; }
+      .proceso-grid { grid-template-columns: 1fr; gap: 2rem; }
+      .exp-cards { grid-template-columns: 1fr; }
+      .exp-card { height: 380px; }
+      .prep-layout { grid-template-columns: 1fr; gap: 3rem; }
+      .seg-grid { grid-template-columns: 1fr; }
+      .guias-grid { grid-template-columns: 1fr; }
+      .escuela-layout { grid-template-columns: 1fr; gap: 3rem; }
+      .contacto-layout { grid-template-columns: 1fr; gap: 3rem; }
+      .footer-top { grid-template-columns: 1fr; gap: 2rem; }
+      .footer-bottom { flex-direction: column; text-align: center; }
+      .transf-steps { flex-direction: column; }
+      .form-row { grid-template-columns: 1fr; }
+      .hero-cta-row { flex-direction: column; align-items: center; }
+      .prep-visual { grid-template-columns: 1fr 1fr; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav id="main-nav">
+  <a href="#hero" class="nav-logo">CÚ<span>S</span>PIDES</a>
+  <ul class="nav-links">
+    <li><a href="#proceso">Proceso</a></li>
+    <li><a href="#expediciones">Expediciones</a></li>
+    <li><a href="#seguridad">Seguridad</a></li>
+    <li><a href="#escuela">Escuela</a></li>
+  </ul>
+  <a href="#contacto" class="nav-cta">Iniciar postulación</a>
+  <button class="hamburger" id="hamburger" aria-label="Menú">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<!-- MOBILE MENU -->
+<div class="mobile-menu" id="mobile-menu">
+  <button class="mobile-close" id="mobile-close">✕</button>
+  <a href="#proceso" class="mobile-link">Proceso</a>
+  <a href="#expediciones" class="mobile-link">Expediciones</a>
+  <a href="#preparacion" class="mobile-link">Preparación</a>
+  <a href="#seguridad" class="mobile-link">Seguridad</a>
+  <a href="#guias" class="mobile-link">Guías</a>
+  <a href="#escuela" class="mobile-link">Escuela</a>
+  <a href="#contacto" class="mobile-link">Postulación</a>
+</div>
+
+<!-- SECTION 1: HERO -->
+<section id="hero">
+  <div class="hero-bg"></div>
+
+  <!-- Mountain SVG signature element -->
+  <div class="mountain-svg-wrap">
+    <svg viewBox="0 0 1440 400" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
+      <defs>
+        <linearGradient id="mountainFill" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#6B21A8" stop-opacity="0.4"/>
+          <stop offset="100%" stop-color="#0C0A09" stop-opacity="1"/>
+        </linearGradient>
+        <linearGradient id="snowGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#F0EFEB" stop-opacity="0.9"/>
+          <stop offset="100%" stop-color="#F0EFEB" stop-opacity="0"/>
+        </linearGradient>
+      </defs>
+      <!-- Main ridge -->
+      <path class="mountain-fill" d="M0 400 L0 300 L80 280 L180 260 L260 230 L320 180 L380 120 L440 60 L500 20 L540 45 L580 30 L620 5 L660 35 L700 80 L760 130 L820 160 L900 190 L980 210 L1060 225 L1160 240 L1260 255 L1360 270 L1440 280 L1440 400 Z" fill="url(#mountainFill)"/>
+      <!-- Snow cap -->
+      <path class="mountain-fill" d="M580 30 L620 5 L660 35 L700 80 L760 130 L700 110 L660 65 L620 20 L580 50 Z" fill="url(#snowGrad)" opacity="0.6"/>
+      <!-- Ridge line animated -->
+      <path id="mountain-path" d="M0 300 L80 280 L180 260 L260 230 L320 180 L380 120 L440 60 L500 20 L540 45 L580 30 L620 5 L660 35 L700 80 L760 130 L820 160 L900 190 L980 210 L1060 225 L1160 240 L1260 255 L1360 270 L1440 280"
+        fill="none" stroke="#A855F7" stroke-width="1.5" stroke-opacity="0.7"/>
+      <!-- Summit glow -->
+      <circle cx="620" cy="5" r="3" fill="#A855F7" class="mountain-fill">
+        <animate attributeName="r" values="3;6;3" dur="3s" repeatCount="indefinite"/>
+        <animate attributeName="fill-opacity" values="1;0.4;1" dur="3s" repeatCount="indefinite"/>
+      </circle>
+    </svg>
+  </div>
+
+  <div class="hero-content">
+    <p class="hero-eyebrow">Patagonia · Alta Montaña · Transformación</p>
+    <h1 class="hero-title">CÚS<span class="accent">PI</span>DES</h1>
+    <p class="hero-sub">No vendemos viajes. Preparamos a quienes están dispuestos a convertirse en otra versión de sí mismos.</p>
+    <p class="hero-filter-line">Si estás buscando algo fácil, este no es tu lugar.</p>
+    <div class="hero-cta-row">
+      <a href="#expediciones" class="btn-primary">Ver expediciones</a>
+      <a href="#proceso" class="btn-ghost">El proceso</a>
+    </div>
+  </div>
+
+  <div class="scroll-hint">
+    <span>Desplazate</span>
+    <div class="scroll-line"></div>
+  </div>
+</section>
+
+<!-- SECTION 2: MANIFESTO -->
+<section id="manifesto">
+  <div class="manifesto-inner reveal">
+    <h2 class="manifesto-quote">
+      La cumbre no es el destino.<br/>
+      La cumbre es la <em>prueba</em><br/>
+      de lo que ya construiste.
+    </h2>
+    <p class="manifesto-note">▲ &nbsp; Filosofía Cúspides &nbsp; ▲</p>
+  </div>
+</section>
+
+<!-- SECTION 3: PROCESO -->
+<section id="proceso">
+  <div class="reveal">
+    <p class="section-eyebrow">Cómo funciona</p>
+    <h2 class="section-title">El <span class="accent">proceso</span><br/>es la experiencia</h2>
+    <p class="section-body">Antes de que tus botas toquen la nieve, ya habrás atravesado meses de preparación física, mental y técnica. Eso es lo que nos distingue.</p>
+  </div>
+  <div class="proceso-grid">
+    <div class="reveal proceso-item" style="transition-delay:0.1s">
+      <div class="proceso-num">01</div>
+      <div class="proceso-content">
+        <p class="proceso-label">Primer contacto</p>
+        <h3 class="proceso-heading">Evaluación inicial</h3>
+        <p class="proceso-text">Una entrevista real con nuestro equipo. Evaluamos tu condición, tu historia y —más importante— tu disposición al esfuerzo genuino.</p>
+        <div class="proceso-bar"><div class="proceso-bar-fill" style="--fill: 25%"></div></div>
+      </div>
+    </div>
+    <div class="reveal proceso-item" style="transition-delay:0.2s">
+      <div class="proceso-num">02</div>
+      <div class="proceso-content">
+        <p class="proceso-label">Meses 1–3</p>
+        <h3 class="proceso-heading">Acondicionamiento base</h3>
+        <p class="proceso-text">Plan de entrenamiento personalizado con seguimiento semanal. Resistencia cardiovascular, fuerza funcional y primeros fundamentos técnicos.</p>
+        <div class="proceso-bar"><div class="proceso-bar-fill" style="--fill: 50%"></div></div>
+      </div>
+    </div>
+    <div class="reveal proceso-item" style="transition-delay:0.3s">
+      <div class="proceso-num">03</div>
+      <div class="proceso-content">
+        <p class="proceso-label">Meses 4–6</p>
+        <h3 class="proceso-heading">Formación técnica</h3>
+        <p class="proceso-text">Uso de crampones y piolet, lectura de terreno, gestión del frío extremo, trabajo en cordada. Sin atajos, sin simulaciones vacías.</p>
+        <div class="proceso-bar"><div class="proceso-bar-fill" style="--fill: 75%"></div></div>
+      </div>
+    </div>
+    <div class="reveal proceso-item" style="transition-delay:0.4s">
+      <div class="proceso-num">04</div>
+      <div class="proceso-content">
+        <p class="proceso-label">La expedición</p>
+        <h3 class="proceso-heading">Cúspide</h3>
+        <p class="proceso-text">La montaña ya no es un obstáculo. Es la confirmación de lo que construiste. Lo que queda después, es tuyo para siempre.</p>
+        <div class="proceso-bar"><div class="proceso-bar-fill" style="--fill: 100%"></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PARALLAX DIVIDER -->
+<div class="parallax-divider"><div class="parallax-line"></div></div>
+
+<!-- SECTION 4: EXPEDICIONES -->
+<section id="expediciones">
+  <div class="exp-intro reveal">
+    <p class="section-eyebrow">Destinos 2025–2026</p>
+    <h2 class="section-title">Las <span class="accent">expediciones</span></h2>
+    <p class="section-body">Cada ruta fue seleccionada por su capacidad de exigir algo que el cliente no sabía que tenía. Ninguna es decorativa.</p>
+  </div>
+  <div class="exp-cards">
+    <div class="exp-card">
+      <div class="exp-card-bg" style="background: linear-gradient(135deg, #1a0a2e 0%, #2d1550 30%, #1a2744 60%, #0a1a0a 100%);"></div>
+      <div class="exp-card-overlay"></div>
+      <div class="exp-card-content">
+        <span class="exp-difficulty difficulty-extreme">Extrema</span>
+        <h3 class="exp-card-title">FITZ ROY</h3>
+        <p class="exp-card-alt">▲ 3.405 msnm — Patagonia Argentina</p>
+        <p class="exp-card-desc">El icono patagónico. Técnica glaciar avanzada, meteorología impredecible, exposición total. Solo para quienes completaron el proceso integral.</p>
+      </div>
+    </div>
+    <div class="exp-card">
+      <div class="exp-card-bg" style="background: linear-gradient(135deg, #0a1a2e 0%, #1a3050 30%, #2d1a44 60%, #0a0a1a 100%);"></div>
+      <div class="exp-card-overlay"></div>
+      <div class="exp-card-content">
+        <span class="exp-difficulty difficulty-high">Alta exigencia</span>
+        <h3 class="exp-card-title">LANÍN</h3>
+        <p class="exp-card-alt">▲ 3.776 msnm — Neuquén</p>
+        <p class="exp-card-desc">Cono volcánico perfecto. La entrada al mundo glaciar para quienes vienen con seis meses de preparación a cuestas. Exigente, posible, transformador.</p>
+      </div>
+    </div>
+    <div class="exp-card">
+      <div class="exp-card-bg" style="background: linear-gradient(135deg, #1a0a14 0%, #3b0764 30%, #1a0a2e 60%, #050308 100%);"></div>
+      <div class="exp-card-overlay"></div>
+      <div class="exp-card-content">
+        <span class="exp-difficulty difficulty-elite">Élite</span>
+        <h3 class="exp-card-title">TORRE EGGER</h3>
+        <p class="exp-card-alt">▲ 2.685 msnm — Cerro Torre Massif</p>
+        <p class="exp-card-desc">Acceso por glaciar Marconi. Ruta mixta de técnica extrema. Solo disponible para expedicionistas con historial verificado en Cúspides.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 5: PREPARACIÓN -->
+<section id="preparacion">
+  <div class="reveal">
+    <p class="section-eyebrow">El camino previo</p>
+    <h2 class="section-title"><span class="accent">Meses</span> antes<br/>de la cima</h2>
+  </div>
+  <div class="prep-layout">
+    <div class="prep-timeline">
+      <div class="prep-step reveal" style="transition-delay:0.1s">
+        <p class="prep-step-month">Mes 1</p>
+        <h3 class="prep-step-title">Diagnóstico y base</h3>
+        <p class="prep-step-text">Test de VO₂ máx, análisis postural y definición de tu punto de partida real. Sin autoengaños.</p>
+      </div>
+      <div class="prep-step reveal" style="transition-delay:0.2s">
+        <p class="prep-step-month">Mes 2–3</p>
+        <h3 class="prep-step-title">Resistencia y fuerza</h3>
+        <p class="prep-step-text">Carga progresiva con control semanal. Entrenamiento con mochila, terreno irregular y exposición controlada al frío.</p>
+      </div>
+      <div class="prep-step reveal" style="transition-delay:0.3s">
+        <p class="prep-step-month">Mes 4–5</p>
+        <h3 class="prep-step-title">Técnica glaciar</h3>
+        <p class="prep-step-text">Primeros pasos en nieve real con nuestros guías. Manejo de crampones, autosalvamento y comunicación en cordada.</p>
+      </div>
+      <div class="prep-step reveal" style="transition-delay:0.4s">
+        <p class="prep-step-month">Mes 6</p>
+        <h3 class="prep-step-title">Simulacro integral</h3>
+        <p class="prep-step-text">Salida de dos noches en terreno de alta montaña. El ensayo general. Si llegás hasta acá, ya sos otra persona.</p>
+      </div>
+    </div>
+    <div class="prep-visual reveal" style="transition-delay:0.2s">
+      <div class="prep-stat">
+        <div class="prep-stat-num" data-target="180">0</div>
+        <p class="prep-stat-label">Días de preparación mínima</p>
+      </div>
+      <div class="prep-stat">
+        <div class="prep-stat-num" data-target="94" data-suffix="%">0</div>
+        <p class="prep-stat-label">Tasa de cumbre de quienes completan el proceso</p>
+      </div>
+      <div class="prep-stat">
+        <div class="prep-stat-num" data-target="12">0</div>
+        <p class="prep-stat-label">Sesiones técnicas en nieve real</p>
+      </div>
+      <div class="prep-stat">
+        <div class="prep-stat-num" data-target="0">0</div>
+        <p class="prep-stat-label">Incidentes graves en 8 temporadas</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 6: SEGURIDAD -->
+<section id="seguridad">
+  <div class="reveal">
+    <p class="section-eyebrow">Protocolos</p>
+    <h2 class="section-title">La <span class="accent">seriedad</span><br/>no es opcional</h2>
+    <p class="section-body">Nuestros protocolos no están para tranquilizar a nadie. Están porque la montaña no perdona improvisación.</p>
+  </div>
+  <div class="seg-grid">
+    <div class="seg-protocols reveal" style="transition-delay:0.1s">
+      <div class="seg-protocol">
+        <div class="seg-icon">◈</div>
+        <div>
+          <h3 class="seg-proto-title">Ratio guía-cliente 1:3</h3>
+          <p class="seg-proto-text">Nunca más de tres clientes por guía certificado. En zonas de riesgo, la ratio baja a 1:2. Sin excepciones por demanda.</p>
+        </div>
+      </div>
+      <div class="seg-protocol">
+        <div class="seg-icon">◈</div>
+        <div>
+          <h3 class="seg-proto-title">Botiquín avanzado de trauma</h3>
+          <p class="seg-proto-text">Cada expedición porta desfibrilador, oxígeno portátil, medicación de emergencia y equipo de inmovilización espinal.</p>
+        </div>
+      </div>
+      <div class="seg-protocol">
+        <div class="seg-icon">◈</div>
+        <div>
+          <h3 class="seg-proto-title">Comunicación permanente</h3>
+          <p class="seg-proto-text">Radios satelitales, PLB individual y protocolo de check-in cada 4 horas con base de operaciones.</p>
+        </div>
+      </div>
+      <div class="seg-protocol">
+        <div class="seg-icon">◈</div>
+        <div>
+          <h3 class="seg-proto-title">Criterio de retorno</h3>
+          <p class="seg-proto-text">Ventanas meteorológicas confirmadas por tres fuentes independientes. La cumbre no vale más que la vida de nadie en esta cordada.</p>
+        </div>
+      </div>
+    </div>
+    <div class="seg-cert reveal" style="transition-delay:0.3s">
+      <h3 class="seg-cert-title">Certificaciones del equipo</h3>
+      <ul class="seg-cert-list">
+        <li>UIAGM — Guía Internacional de Alta Montaña</li>
+        <li>Wilderness First Responder (WFR)</li>
+        <li>Técnico en Rescate en Montaña — Gendarmería</li>
+        <li>Certificación en manejo de avalanchas — AIARE Level 2</li>
+        <li>Instructor de primeros auxilios — Cruz Roja Argentina</li>
+        <li>Habilitación SENATUR — Turismo de Aventura</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- PARALLAX DIVIDER -->
+<div class="parallax-divider"><div class="parallax-line"></div></div>
+
+<!-- SECTION 7: GUÍAS -->
+<section id="guias">
+  <div class="reveal">
+    <p class="section-eyebrow">Quiénes te guían</p>
+    <h2 class="section-title">El <span class="accent">equipo</span></h2>
+    <p class="section-body">Cada guía de Cúspides tiene cientos de ascensos, certificaciones internacionales y algo más importante: saben cuándo dar vuelta.</p>
+  </div>
+  <div class="guias-grid">
+    <div class="guia-card reveal" style="transition-delay:0.1s">
+      <div class="guia-avatar">MV</div>
+      <h3 class="guia-name">Matías Vidal</h3>
+      <p class="guia-role">Director técnico · UIAGM</p>
+      <p class="guia-bio">18 años de guía de alta montaña. Más de 300 cumbres en Patagonia y Andes centrales. Formador de guías en la Escuela Nacional.</p>
+      <div class="guia-tags">
+        <span class="guia-tag">Glaciarismo</span>
+        <span class="guia-tag">Rescate</span>
+        <span class="guia-tag">Formación</span>
+      </div>
+    </div>
+    <div class="guia-card reveal" style="transition-delay:0.2s">
+      <div class="guia-avatar">LC</div>
+      <h3 class="guia-name">Laura Castillo</h3>
+      <p class="guia-role">Guía senior · WFR Instructor</p>
+      <p class="guia-bio">Primera mujer en integrar el equipo técnico de Cúspides. Especialista en preparación mental y gestión emocional en situaciones límite.</p>
+      <div class="guia-tags">
+        <span class="guia-tag">Psicología de riesgo</span>
+        <span class="guia-tag">Primeros auxilios</span>
+      </div>
+    </div>
+    <div class="guia-card reveal" style="transition-delay:0.3s">
+      <div class="guia-avatar">RP</div>
+      <h3 class="guia-name">Rodrigo Peralta</h3>
+      <p class="guia-role">Guía técnico · AIARE L2</p>
+      <p class="guia-bio">Ex integrante de la Patrulla de Rescate en Montaña. Especialista en zonas de grietas y técnica de cuerda fija en terreno mixto.</p>
+      <div class="guia-tags">
+        <span class="guia-tag">Grietas</span>
+        <span class="guia-tag">Mixto</span>
+        <span class="guia-tag">Rescate glaciar</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 8: TESTIMONIOS -->
+<section id="testimonios">
+  <div class="reveal">
+    <p class="section-eyebrow">Quienes ya subieron</p>
+    <h2 class="section-title">No son <span class="accent">clientes</span>.<br/>Son expedicionistas.</h2>
+  </div>
+  <div class="testi-track-wrap">
+    <div class="testi-track" id="testi-track">
+      <!-- Cards duplicated for infinite loop -->
+      <div class="testi-card">
+        <div class="testi-stars">★★★★★</div>
+        <p class="testi-text">"Llegué sin saber ni usar crampones. Seis meses después, estaba en la cumbre del Lanín mirando la estepa. Ninguna otra experiencia me cambió así."</p>
+        <p class="testi-author">Andrés M.</p>
+        <p class="testi-meta">Ingeniero · Buenos Aires · Lanín 2024</p>
+      </div>
+      <div class="testi-card">
+        <div class="testi-stars">★★★★★</div>
+        <p class="testi-text">"Me rechazaron en la evaluación inicial. Me dijeron qué mejorar. Volví seis meses después y me aceptaron. Eso solo ya me enseñó más que cualquier otro viaje."</p>
+        <p class="testi-author">Valeria R.</p>
+        <p class="testi-meta">Médica · Rosario · Lanín 2025</p>
+      </div>
+      <div class="testi-card">
+        <div class="testi-stars">★★★★★</div>
+        <p class="testi-text">"El protocolo de seguridad es la cosa más seria que vi en turismo de aventura. En algún punto de la ruta me di cuenta de que confiaba en el equipo más que en mí mismo."</p>
+        <p class="testi-author">Diego F.</p>
+        <p class="testi-meta">Empresario · Mendoza · Fitz Roy 2024</p>
+      </div>
+      <div class="testi-card">
+        <div class="testi-stars">★★★★★</div>
+        <p class="testi-text">"Pensé que la preparación era un trámite. A los tres meses entendí que era el viaje en sí. Cúspides te transforma antes de que llegues a la montaña."</p>
+        <p class="testi-author">Martina L.</p>
+        <p class="testi-meta">Arquitecta · Córdoba · Lanín 2023</p>
+      </div>
+      <div class="testi-card">
+        <div class="testi-stars">★★★★★</div>
+        <p class="testi-text">"Fitz Roy me enseñó qué soy cuando no tengo salida. Matías supo cuándo empujar y cuándo frenar. Ese criterio no se aprende en ningún curso, se gana."</p>
+        <p class="testi-author">Pablo G.</p>
+        <p class="testi-meta">Contador · CABA · Fitz Roy 2025</p>
+      </div>
+      <!-- Duplicate -->
+      <div class="testi-card">
+        <div class="testi-stars">★★★★★</div>
+        <p class="testi-text">"Llegué sin saber ni usar crampones. Seis meses después, estaba en la cumbre del Lanín mirando la estepa. Ninguna otra experiencia me cambió así."</p>
+        <p class="testi-author">Andrés M.</p>
+        <p class="testi-meta">Ingeniero · Buenos Aires · Lanín 2024</p>
+      </div>
+      <div class="testi-card">
+        <div class="testi-stars">★★★★★</div>
+        <p class="testi-text">"Me rechazaron en la evaluación inicial. Me dijeron qué mejorar. Volví seis meses después y me aceptaron. Eso solo ya me enseñó más que cualquier otro viaje."</p>
+        <p class="testi-author">Valeria R.</p>
+        <p class="testi-meta">Médica · Rosario · Lanín 2025</p>
+      </div>
+      <div class="testi-card">
+        <div class="testi-stars">★★★★★</div>
+        <p class="testi-text">"El protocolo de seguridad es la cosa más seria que vi en turismo de aventura. En algún punto de la ruta me di cuenta de que confiaba en el equipo más que en mí mismo."</p>
+        <p class="testi-author">Diego F.</p>
+        <p class="testi-meta">Empresario · Mendoza · Fitz Roy 2024</p>
+      </div>
+      <div class="testi-card">
+        <div class="testi-stars">★★★★★</div>
+        <p class="testi-text">"Pensé que la preparación era un trámite. A los tres meses entendí que era el viaje en sí. Cúspides te transforma antes de que llegues a la montaña."</p>
+        <p class="testi-author">Martina L.</p>
+        <p class="testi-meta">Arquitecta · Córdoba · Lanín 2023</p>
+      </div>
+      <div class="testi-card">
+        <div class="testi-stars">★★★★★</div>
+        <p class="testi-text">"Fitz Roy me enseñó qué soy cuando no tengo salida. Matías supo cuándo empujar y cuándo frenar. Ese criterio no se aprende en ningún curso, se gana."</p>
+        <p class="testi-author">Pablo G.</p>
+        <p class="testi-meta">Contador · CABA · Fitz Roy 2025</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 9: TRANSFORMACIÓN -->
+<section id="transformacion">
+  <div class="transf-inner reveal">
+    <div class="transf-pulse">
+      <span class="transf-inner-symbol">△</span>
+    </div>
+    <h2 class="transf-title">La transmutación<br/>es el producto</h2>
+    <p class="transf-body">El violeta no es un color decorativo. En la tradición alquímica, es el color de la transformación profunda. Subir no es el punto. Lo que volvés siendo, sí.</p>
+  </div>
+  <div class="transf-steps reveal" style="transition-delay:0.3s">
+    <div class="transf-step">
+      <div class="transf-step-icon">◯</div>
+      <h3 class="transf-step-title">Antes</h3>
+      <p class="transf-step-text">Una versión de vos con límites que nunca fueron probados.</p>
+    </div>
+    <div class="transf-step">
+      <div class="transf-step-icon">◈</div>
+      <h3 class="transf-step-title">Durante</h3>
+      <p class="transf-step-text">Seis meses de presión deliberada. El forjado real.</p>
+    </div>
+    <div class="transf-step">
+      <div class="transf-step-icon">△</div>
+      <h3 class="transf-step-title">En la cima</h3>
+      <p class="transf-step-text">La confirmación. No el inicio — el final de la primera etapa.</p>
+    </div>
+    <div class="transf-step">
+      <div class="transf-step-icon">★</div>
+      <h3 class="transf-step-title">Después</h3>
+      <p class="transf-step-text">Una persona que sabe lo que puede. Para siempre.</p>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 10: ESCUELA DE GUÍAS -->
+<section id="escuela">
+  <div class="escuela-badge">Próximamente 2027</div>
+  <div class="escuela-layout">
+    <div class="reveal">
+      <p class="section-eyebrow">Visión a futuro</p>
+      <h2 class="section-title">Escuela de<br/><span class="accent">Guías</span></h2>
+      <p class="section-body">Cúspides se expande hacia la formación profesional. Si transformar personas es nuestra misión, el siguiente paso es formar a quienes guiarán esas transformaciones.</p>
+      <div class="escuela-programs">
+        <div class="escuela-program">
+          <div class="escuela-prog-year">2027 — Q1</div>
+          <div>
+            <h3 class="escuela-prog-name">Rescate en Grietas</h3>
+            <p class="escuela-prog-desc">Certificación internacional de rescate glaciar. Técnicas de extracción, sistemas de poleas y gestión de incidentes en zonas crevaseadas.</p>
+          </div>
+        </div>
+        <div class="escuela-program">
+          <div class="escuela-prog-year">2027 — Q2</div>
+          <div>
+            <h3 class="escuela-prog-name">Primeros Auxilios en Zonas Agrestes</h3>
+            <p class="escuela-prog-desc">Formación WFR certificada para entornos sin acceso rápido a sistemas de salud. Colaboración con brigadas de montaña internacionales.</p>
+          </div>
+        </div>
+        <div class="escuela-program">
+          <div class="escuela-prog-year">2027 — Q4</div>
+          <div>
+            <h3 class="escuela-prog-name">Guía Integral de Alta Montaña</h3>
+            <p class="escuela-prog-desc">Programa completo de 9 meses hacia la habilitación nacional. Convenio con UIAGM para reconocimiento internacional.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="escuela-visual reveal" style="transition-delay:0.3s">
+      <h3 class="escuela-visual-title">ESCUELA<br/>CÚSPIDES</h3>
+      <p class="escuela-visual-sub">Alta Montaña · Rescate · Formación</p>
+      <div class="escuela-circle-anim"></div>
+      <p class="escuela-launch-date">Lanzamiento primer semestre 2027<br/>Registrate para ser notificado</p>
+      <div style="margin-top: 1.5rem;">
+        <button class="btn-primary" onclick="showToast('¡Anotado! Te notificamos cuando abran las inscripciones.')">Anotarme en lista de espera</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 11: CONTACTO -->
+<section id="contacto">
+  <div class="reveal">
+    <p class="section-eyebrow">El primer paso</p>
+    <h2 class="section-title">Iniciá tu<br/><span class="accent">postulación</span></h2>
+    <p class="section-body">No es un formulario de compra. Es el inicio de una evaluación. Respondemos a cada postulación en menos de 48 horas.</p>
+  </div>
+  <div class="contacto-layout">
+    <div class="contacto-form reveal" style="transition-delay:0.1s">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Nombre</label>
+          <input type="text" class="form-input" placeholder="Tu nombre" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Apellido</label>
+          <input type="text" class="form-input" placeholder="Tu apellido" />
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Email</label>
+        <input type="email" class="form-input" placeholder="tu@email.com" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Expedición de interés</label>
+        <select class="form-select">
+          <option value="">Seleccioná una opción</option>
+          <option>Volcán Lanín — Alta exigencia</option>
+          <option>Fitz Roy — Extrema</option>
+          <option>Torre Egger — Élite</option>
+          <option>No sé aún, quiero orientación</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">¿Por qué Cúspides?</label>
+        <textarea class="form-textarea" placeholder="Contanos qué te trajo hasta acá. Sin filtros."></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Nivel actual de actividad física</label>
+        <select class="form-select">
+          <option value="">Seleccioná</option>
+          <option>Sedentario — recién empezando</option>
+          <option>Activo — ejercito 3 veces por semana</option>
+          <option>Deportista — competición amateur</option>
+          <option>Alto rendimiento — experiencia en montaña</option>
+        </select>
+      </div>
+      <button class="form-submit" onclick="showToast('Postulación enviada. Te contactamos en menos de 48hs.')">Enviar postulación</button>
+      <p class="form-note">No vendemos cupos. Evaluamos personas.</p>
+    </div>
+    <div class="contacto-info reveal" style="transition-delay:0.3s">
+      <div class="contact-block">
+        <p class="contact-block-label">Base de operaciones</p>
+        <p class="contact-block-value">San Carlos de Bariloche</p>
+      </div>
+      <div class="contact-block">
+        <p class="contact-block-label">Zonas de operación</p>
+        <p class="contact-block-value">Patagonia Argentina · Andes Centrales</p>
+      </div>
+      <div class="contact-block">
+        <p class="contact-block-label">Contacto directo</p>
+        <p class="contact-block-value">info@cuspides.com.ar</p>
+      </div>
+      <div class="contact-block">
+        <p class="contact-block-label">WhatsApp</p>
+        <p class="contact-block-value">+54 294 400 0000</p>
+      </div>
+      <div class="contact-promise">
+        <h3 class="contact-promise-title">Lo que prometemos</h3>
+        <p class="contact-promise-text">Si llegás a la evaluación inicial y vemos que no estás listo, te lo decimos. No tomamos tu dinero a cambio de promesas vacías. Nuestra reputación está en cada persona que subió y en cada una que todavía no debía subir.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 12: FOOTER -->
+<footer id="footer">
+  <div class="footer-top">
+    <div>
+      <p class="footer-brand-name">CÚ<span>S</span>PIDES</p>
+      <p class="footer-tagline">Transformación a través de la alta montaña patagónica. Para los que no buscan turismo sino prueba.</p>
+      <div class="footer-social">
+        <a href="#" title="Instagram">IG</a>
+        <a href="#" title="YouTube">YT</a>
+        <a href="#" title="WhatsApp">WA</a>
+      </div>
+    </div>
+    <div class="footer-col">
+      <p class="footer-col-title">Expediciones</p>
+      <ul>
+        <li><a href="#expediciones">Volcán Lanín</a></li>
+        <li><a href="#expediciones">Fitz Roy</a></li>
+        <li><a href="#expediciones">Torre Egger</a></li>
+        <li><a href="#escuela">Escuela de Guías</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <p class="footer-col-title">El proceso</p>
+      <ul>
+        <li><a href="#proceso">Evaluación inicial</a></li>
+        <li><a href="#preparacion">Preparación</a></li>
+        <li><a href="#seguridad">Protocolos</a></li>
+        <li><a href="#guias">Nuestros guías</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <p class="footer-col-title">Información</p>
+      <ul>
+        <li><a href="#contacto">Postulación</a></li>
+        <li><a href="#testimonios">Expedicionistas</a></li>
+        <li><a href="#transformacion">Filosofía</a></li>
+        <li><a href="#contacto">Contacto</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p class="footer-copy">© 2025 Cúspides. Todos los derechos reservados. Habilitación SENATUR N° 00000.</p>
+    <p class="footer-altitude">▲ &nbsp; 3.776 msnm sobre el nivel del mar &nbsp; ▲</p>
+  </div>
+</footer>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+  // NAV scroll effect
+  const nav = document.getElementById('main-nav');
+  window.addEventListener('scroll', () => {
+    nav.classList.toggle('scrolled', window.scrollY > 60);
+  });
+
+  // Mobile menu
+  const hamburger = document.getElementById('hamburger');
+  const mobileMenu = document.getElementById('mobile-menu');
+  const mobileClose = document.getElementById('mobile-close');
+  hamburger.addEventListener('click', () => mobileMenu.classList.add('open'));
+  mobileClose.addEventListener('click', () => mobileMenu.classList.remove('open'));
+  document.querySelectorAll('.mobile-link').forEach(link => {
+    link.addEventListener('click', () => mobileMenu.classList.remove('open'));
+  });
+
+  // Reveal on scroll
+  const revealEls = document.querySelectorAll('.reveal');
+  const revealObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+        // Animate prep steps inside visible reveal
+        entry.target.querySelectorAll('.prep-step').forEach(s => s.classList.add('visible'));
+        revealObserver.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.12 });
+  revealEls.forEach(el => revealObserver.observe(el));
+
+  // Prep step standalone observer
+  document.querySelectorAll('.prep-step').forEach(el => {
+    const obs = new IntersectionObserver((entries) => {
+      entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); obs.unobserve(e.target); }});
+    }, { threshold: 0.2 });
+    obs.observe(el);
+  });
+
+  // Counter animation
+  function animateCount(el) {
+    const target = parseInt(el.dataset.target);
+    const suffix = el.dataset.suffix || '';
+    const duration = 1800;
+    const start = performance.now();
+    const step = (now) => {
+      const progress = Math.min((now - start) / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      el.textContent = Math.floor(eased * target) + suffix;
+      if (progress < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  }
+  const counterEls = document.querySelectorAll('[data-target]');
+  const counterObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        animateCount(entry.target);
+        counterObserver.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.5 });
+  counterEls.forEach(el => counterObserver.observe(el));
+
+  // Toast
+  function showToast(msg) {
+    const toast = document.getElementById('toast');
+    toast.textContent = msg;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 4000);
+  }
+
+  // Smooth scroll for anchors
+  document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', e => {
+      const target = document.querySelector(anchor.getAttribute('href'));
+      if (target) {
+        e.preventDefault();
+        target.scrollIntoView({ behavior: 'smooth' });
+      }
+    });
+  });
+</script>
+</body>
+</html>
