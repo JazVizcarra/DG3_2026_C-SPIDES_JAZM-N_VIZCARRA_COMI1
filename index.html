@@ -30,12 +30,12 @@
       --stone-mid:      #44403C;
       --stone-pale:     #A8A29E;
       --ice-white:      #F0EFEB;
-      --amber-summit:   #D97706;
+      --amber-summit:   #7C3AED;
       --amber-light:    #FCD34D;
       --steel-ice:      #94A3B8;
       --ff-display:     'Oswald', sans-serif;
-      --ff-body:        'Mainrope', 'Georgia', serif;
-      --ff-mono:        'Space Mono', monospace;
+      --ff-body:        'Mainrope', sans-serif;
+      --ff-mono:        'Mainrope', sans-serif;
     }
 
     html { scroll-behavior: smooth; }
@@ -135,9 +135,9 @@
     }
     .hero-photo {
       position: absolute; inset: 0;
-      background-image: url('https://images.unsplash.com/photo-1551632811-561732d1e306?w=1600&q=80');
+      background-image: url('../ASSETS/hero.png');
       background-size: cover; background-position: center 30%;
-      filter: brightness(0.5) saturate(0.8);
+      filter: brightness(1);lighting-color: rgba(107,33,168,0.3)
       animation: heroZoom 12s ease forwards;
     }
     @keyframes heroZoom {
@@ -155,8 +155,9 @@
     }
 
     .hero-content {
-      position: relative; z-index: 2; text-align: center;
-      padding: 0 2rem; max-width: 1100px;
+      position: relative; z-index: 2; text-align: left;
+      padding: -111 16rem; max-width: 1100px;
+      transform: translateX(-260px);
     }
     .hero-eyebrow {
       font-family: var(--ff-mono);
@@ -1011,7 +1012,7 @@
     <li><a href="#seguridad">Seguridad</a></li>
     <li><a href="#escuela">Escuela</a></li>
   </ul>
-  <a href="#contacto" class="nav-cta">Iniciar postulación</a>
+  <a href="#contacto" class="nav-cta">POSTULARME</a>
   <button class="hamburger" id="hamburger" aria-label="Menú">
     <span></span><span></span><span></span>
   </button>
@@ -1035,19 +1036,11 @@
   <div class="hero-tint"></div>
 
   <div class="hero-content">
-    <p class="hero-eyebrow">Patagonia · Alta Montaña · Transformación</p>
-    <h1 class="hero-title">La verdadera conquista<br/>ocurre <span class="accent">antes</span> de la cima</h1>
+    <h1 class="hero-title">DONDE TERMINA<br/>LO POSIBLE,<br/>EMPIEZA<br/> <span class="accent">LA CUMBRE.</span></h1>
     <p class="hero-sub">No vendemos viajes. Preparamos a quienes están dispuestos a convertirse en otra versión de sí mismos.</p>
-    <p class="hero-filter-line">Si estás buscando algo fácil, este no es tu lugar.</p>
     <div class="hero-cta-row">
       <a href="#expediciones" class="btn-primary">Ver expediciones</a>
-      <a href="#proceso" class="btn-ghost">El proceso</a>
     </div>
-  </div>
-
-  <div class="scroll-hint">
-    <span>Desplazate</span>
-    <div class="scroll-line"></div>
   </div>
 </section>
 
@@ -1192,7 +1185,7 @@
       <div class="exp-card-bg" style="background: linear-gradient(135deg, #1a0a2e 0%, #2d1550 30%, #1a2744 60%, #0a1a0a 100%);"></div>
       <div class="exp-card-overlay"></div>
       <div class="exp-card-content">
-        <span class="exp-difficulty difficulty-extreme">Extrema</span>
+        <span class="exp-difficulty difficulty-extreme">BAJO</span>
         <h3 class="exp-card-title">FITZ ROY</h3>
         <p class="exp-card-alt">▲ 3.405 msnm — Patagonia Argentina</p>
         <p class="exp-card-desc">El icono patagónico. Técnica glaciar avanzada, meteorología impredecible, exposición total. Solo para quienes completaron el proceso integral.</p>
@@ -1202,7 +1195,7 @@
       <div class="exp-card-bg" style="background: linear-gradient(135deg, #0a1a2e 0%, #1a3050 30%, #2d1a44 60%, #0a0a1a 100%);"></div>
       <div class="exp-card-overlay"></div>
       <div class="exp-card-content">
-        <span class="exp-difficulty difficulty-high">Alta exigencia</span>
+        <span class="exp-difficulty difficulty-high">MEDIO</span>
         <h3 class="exp-card-title">LANÍN</h3>
         <p class="exp-card-alt">▲ 3.776 msnm — Neuquén</p>
         <p class="exp-card-desc">Cono volcánico perfecto. La entrada al mundo glaciar para quienes vienen con seis meses de preparación a cuestas. Exigente, posible, transformador.</p>
@@ -1212,7 +1205,7 @@
       <div class="exp-card-bg" style="background: linear-gradient(135deg, #1a0a14 0%, #3b0764 30%, #1a0a2e 60%, #050308 100%);"></div>
       <div class="exp-card-overlay"></div>
       <div class="exp-card-content">
-        <span class="exp-difficulty difficulty-elite">Élite</span>
+        <span class="exp-difficulty difficulty-elite">EXTREMO</span>
         <h3 class="exp-card-title">TORRE EGGER</h3>
         <p class="exp-card-alt">▲ 2.685 msnm — Cerro Torre Massif</p>
         <p class="exp-card-desc">Acceso por glaciar Marconi. Ruta mixta de técnica extrema. Solo disponible para expedicionistas con historial verificado en Cúspides.</p>
@@ -1336,11 +1329,11 @@
   <div class="guias-grid">
     <!-- Guía 1: Laura — foto 1 (mujer con casco blanco, mochila naranja) -->
     <div class="guia-card reveal" style="transition-delay:0.1s">
-      <div class="guia-photo" style="background-image: url('/mnt/user-data/uploads/1782164268470_image.png'); background-position: 6% center; background-size: 410%;"></div>
+      <div class="guia-photo" style="background-image: url('../ASSETS/gu%C3%ADa%202.png'); background-position: 0% center; background-size: 156%;"></div>
       <div class="guia-overlay"></div>
       <div class="guia-content">
-        <p class="guia-role">Guía senior · WFR Instructor</p>
-        <h3 class="guia-name">Laura Castillo</h3>
+        <p class="guia-role">Guía senior · Instructora</p>
+        <h3 class="guia-name">Chiara Castillo</h3>
         <p class="guia-bio">Primera mujer en integrar el equipo técnico de Cúspides. Especialista en preparación mental y gestión emocional en situaciones límite.</p>
         <div class="guia-tags">
           <span class="guia-tag">Psicología de riesgo</span>
@@ -1350,11 +1343,11 @@
     </div>
     <!-- Guía 2: Rodrigo — foto 2 (hombre con casco negro, lentes) -->
     <div class="guia-card reveal" style="transition-delay:0.2s">
-      <div class="guia-photo" style="background-image: url('/mnt/user-data/uploads/1782164268470_image.png'); background-position: 36% center; background-size: 410%;"></div>
+      <div class="guia-photo" style="background-image: url('../ASSETS/gu%C3%ADa1.png'); background-position: 18% center; background-size: 159%;"></div>
       <div class="guia-overlay"></div>
       <div class="guia-content">
         <p class="guia-role">Guía técnico · AIARE L2</p>
-        <h3 class="guia-name">Rodrigo Peralta</h3>
+        <h3 class="guia-name">Leandro Peralta</h3>
         <p class="guia-bio">Ex integrante de la Patrulla de Rescate en Montaña. Especialista en zonas de grietas y técnica de cuerda fija en terreno mixto.</p>
         <div class="guia-tags">
           <span class="guia-tag">Grietas</span>
@@ -1365,11 +1358,11 @@
     </div>
     <!-- Guía 3: Valentina — foto 3 (mujer con casco blanco, campera naranja) -->
     <div class="guia-card reveal" style="transition-delay:0.3s">
-      <div class="guia-photo" style="background-image: url('/mnt/user-data/uploads/1782164268470_image.png'); background-position: 64% center; background-size: 410%;"></div>
+      <div class="guia-photo" style="background-image: url('../ASSETS/gu%C3%ADa%204.png'); background-position: 45% center; background-size: 159%;"></div>
       <div class="guia-overlay"></div>
       <div class="guia-content">
         <p class="guia-role">Guía de alta montaña · WFR</p>
-        <h3 class="guia-name">Valentina Ríos</h3>
+        <h3 class="guia-name">Carolina Ríos</h3>
         <p class="guia-bio">Especialista en navegación glaciar y condiciones extremas de frío. Instructora de primeros auxilios en zonas de acceso remoto.</p>
         <div class="guia-tags">
           <span class="guia-tag">Glaciarismo</span>
@@ -1380,11 +1373,11 @@
     </div>
     <!-- Guía 4: Matías — foto 4 (hombre con casco blanco, mochila azul) -->
     <div class="guia-card reveal" style="transition-delay:0.4s">
-      <div class="guia-photo" style="background-image: url('/mnt/user-data/uploads/1782164268470_image.png'); background-position: 94% center; background-size: 410%;"></div>
+      <div class="guia-photo" style="background-image: url('../ASSETS/gu%C3%ADa%203.png'); background-position: 15% center; background-size: 159%;"></div>
       <div class="guia-overlay"></div>
       <div class="guia-content">
         <p class="guia-role">Director técnico · UIAGM</p>
-        <h3 class="guia-name">Matías Vidal</h3>
+        <h3 class="guia-name">Martín Vidal</h3>
         <p class="guia-bio">18 años de guía de alta montaña. Más de 300 cumbres en Patagonia y Andes centrales. Formador de guías en la Escuela Nacional.</p>
         <div class="guia-tags">
           <span class="guia-tag">Glaciarismo</span>
@@ -1626,7 +1619,7 @@
 <footer id="footer">
   <div class="footer-top">
     <div>
-      <p class="footer-brand-name">CÚ<span>S</span>PIDES</p>
+      <p class="footer-brand-name">CÚS<span></span>PIDES</p>
       <p class="footer-tagline">Transformación a través de la alta montaña patagónica. Para los que no buscan turismo sino prueba.</p>
       <div class="footer-social">
         <a href="#" title="Instagram">IG</a>
@@ -1663,7 +1656,7 @@
     </div>
   </div>
   <div class="footer-bottom">
-    <p class="footer-copy">© 2025 Cúspides. Todos los derechos reservados. Habilitación SENATUR N° 00000.</p>
+    <p class="footer-copy">© 2025 CÚSPIDES. Todos los derechos reservados. Habilitación SENATUR N° 00000.</p>
     <p class="footer-altitude">▲ &nbsp; 3.776 msnm sobre el nivel del mar &nbsp; ▲</p>
   </div>
 </footer>
